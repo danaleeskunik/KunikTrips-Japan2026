@@ -1334,6 +1334,14 @@ var CURRENT_DESTINATION = (function(){
     var q = new URLSearchParams(window.location.search).get('dest');
     if(q && DESTINATIONS[q]) return q;
   }catch(e){}
+  try{
+    /* pretty per-destination URLs (e.g. /korea-dror/) exist purely so each one can carry
+       its own static <title>/og: tags for link previews — WhatsApp etc. read the raw HTML
+       and never run this script, so the title itself is baked into each folder's file. */
+    var segs = window.location.pathname.split('/').filter(Boolean);
+    var last = segs[segs.length - 1];
+    if(last && DESTINATIONS[last]) return last;
+  }catch(e){}
   return 'japan';
 })();
 applyDestinationTheme(CURRENT_DESTINATION);
