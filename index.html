@@ -293,9 +293,9 @@
 /* styles.css */
 
 .home-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin:18px 0 8px}
-.restaurant-city-group summary{-webkit-tap-highlight-color:transparent}
-.restaurant-city-group summary::-webkit-details-marker{display:none}
-.restaurant-city-group[open] .restaurant-city-chevron{transform:rotate(180deg)}
+.restaurant-city-group summary,.day-food-details summary{-webkit-tap-highlight-color:transparent}
+.restaurant-city-group summary::-webkit-details-marker,.day-food-details summary::-webkit-details-marker{display:none}
+.restaurant-city-group[open] .restaurant-city-chevron,.day-food-details[open] .day-food-chevron{transform:rotate(180deg)}
 .home-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--surface-card);border:1px solid var(--border-card);border-radius:16px;box-shadow:var(--shadow-card);padding:20px 10px;cursor:pointer;font-family:var(--font-ui);text-align:center;min-height:104px;transition:var(--transition-card)}
 .home-tile:hover{transform:var(--hover-lift);box-shadow:var(--shadow-card-hover)}
 .tile-icon{width:44px;height:44px;border-radius:var(--radius-13);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -1582,8 +1582,8 @@ function renderDayFoodBlocks(){
     var n = parseInt(card.getAttribute('data-daycard'), 10);
     var items = byDay[n];
     if(!items || !items.length) return;
-    var box = document.createElement('div');
-    box.className = 'day-food-box';
+    var box = document.createElement('details');
+    box.className = 'day-food-box day-food-details';
     box.setAttribute('data-dir-flip', '');
     box.style.cssText = 'margin-top:14px;padding-top:14px;border-top:1px solid var(--border-hair)';
     var rows = items.map(function(p){
@@ -1598,8 +1598,11 @@ function renderDayFoodBlocks(){
         + '<span style="flex-shrink:0;font:var(--fw-bold) var(--text-12)/1 var(--font-ui);color:var(--blue-600)">מפות ←</span>'
         + '</a>';
     }).join('');
-    box.innerHTML = '<div style="font:var(--fw-heavy) var(--text-13)/1.2 var(--font-ui);letter-spacing:var(--track-eyebrow);color:var(--blue-600);margin-bottom:8px">אוכל באזור</div>'
-      + '<div style="display:flex;flex-direction:column;gap:8px">' + rows + '</div>';
+    box.innerHTML = '<summary style="cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:space-between;list-style:none">'
+      + '<span style="font:var(--fw-heavy) var(--text-13)/1.2 var(--font-ui);letter-spacing:var(--track-eyebrow);color:var(--blue-600)">אוכל באזור · ' + items.length + '</span>'
+      + '<span class="day-food-chevron" style="font:var(--fw-bold) var(--text-14)/1 var(--font-ui);color:var(--blue-600);transition:transform .2s">⌄</span>'
+      + '</summary>'
+      + '<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">' + rows + '</div>';
     card.appendChild(box);
   });
 }
