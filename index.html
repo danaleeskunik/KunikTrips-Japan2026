@@ -1982,9 +1982,10 @@ restoreAttr();
 var BUDGET_ENTRIES_KEY='japan2026.budget.entries';
 var BUDGET_TARGET_KEY='japan2026.budget.target';
 function loadBudgetEntries(){ try{return JSON.parse(localStorage.getItem(BUDGET_ENTRIES_KEY)||'[]');}catch(e){return [];} }
-function saveBudgetEntries(arr){ try{localStorage.setItem(BUDGET_ENTRIES_KEY,JSON.stringify(arr));}catch(e){} }
+function saveBudgetEntries(arr){ try{localStorage.setItem(BUDGET_ENTRIES_KEY,JSON.stringify(arr));}catch(e){} if(typeof DAY_EDITS!=='undefined'){ DAY_EDITS.budget=DAY_EDITS.budget||{}; DAY_EDITS.budget.entries=arr; sbUpsertTripData({day_edits:DAY_EDITS}); } }
 function loadBudgetTarget(){ try{return localStorage.getItem(BUDGET_TARGET_KEY)||'';}catch(e){return '';} }
 function budgetCurrencySymbol(){
+  if(CURRENT_DESTINATION === 'japan') return '₪';
   try{
     var dest = DESTINATIONS[CURRENT_DESTINATION];
     if(dest && dest.currency && dest.currency.symbol) return dest.currency.symbol;
@@ -2013,6 +2014,7 @@ function saveBudgetTarget(){
   var el=document.getElementById('budget-target-input');
   if(!el) return;
   try{localStorage.setItem(BUDGET_TARGET_KEY, el.value);}catch(e){}
+  if(typeof DAY_EDITS!=='undefined'){ DAY_EDITS.budget=DAY_EDITS.budget||{}; DAY_EDITS.budget.target=el.value; sbUpsertTripData({day_edits:DAY_EDITS}); }
   renderBudget();
 }
 function renderBudget(){
@@ -2497,6 +2499,13 @@ function hydrateFromSupabase(){
     EDITING_ENABLED = !!(settings && settings.editing_enabled);
     if(row && row.day_edits) DAY_EDITS = row.day_edits;
     applyDayEditsData();
+    if(DAY_EDITS && DAY_EDITS.budget){
+      try{
+        if(DAY_EDITS.budget.entries) localStorage.setItem(BUDGET_ENTRIES_KEY, JSON.stringify(DAY_EDITS.budget.entries));
+        if(DAY_EDITS.budget.target!=null) localStorage.setItem(BUDGET_TARGET_KEY, DAY_EDITS.budget.target);
+      }catch(e){}
+      if(typeof renderBudget==='function') renderBudget();
+    }
     if(EDITING_ENABLED){
       wireAllDayCardsForEditing();
       renderAddHotelUI();
@@ -2611,7 +2620,7 @@ function handlePhotoOcr(file){
   });
 }
 paintTranslateDirButtons();
-if(CURRENT_DESTINATION !== 'japan') applyTripDemo(CURRENT_DESTINATION); else { renderDayMaps(JAPAN_DAY_CITIES); updateDaysFeaturedTile(); var tileRest = document.getElementById('tile-restaurants'); if(tileRest) tileRest.style.display = ''; openRelevantRestaurantCity(); renderDayFoodBlocks(); }
+if(CURRENT_DESTINATION !== 'japan') applyTripDemo(CURRENT_DESTINATION); else { renderDayMaps(JAPAN_DAY_CITIES); updateDaysFeaturedTile(); var tileRest = document.getElementById('tile-restaurants'); if(tileRest) tileRest.style.display = ''; openRelevantRestaurantCity(); renderDayFoodBlocks(); var tileBudget = document.getElementById('tile-budget'); if(tileBudget) tileBudget.style.display = ''; }
 if(CURRENT_FAMILY && FAMILY_NAMES[CURRENT_FAMILY]){
   var familyBanner = document.getElementById('family-banner');
   if(familyBanner){ familyBanner.textContent = FAMILY_NAMES[CURRENT_FAMILY]; familyBanner.style.display = 'inline-block'; }
