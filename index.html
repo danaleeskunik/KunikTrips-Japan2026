@@ -2196,6 +2196,8 @@ function openDoc(id){
 }
 function deleteDoc(id){
   var arr=loadDocs(), d=arr.filter(function(x){return x.id===id;})[0];
+  if(!d) return;
+  if(!window.confirm('למחוק את "'+d.name+'"? לא ניתן לשחזר.')) return;
   sbDeleteDocRow(id).catch(function(){});
   if(d && d.storage_path) sbDeleteFile(d.storage_path).catch(function(){});
   arr=arr.filter(function(x){return x.id!==id;});
