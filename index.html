@@ -355,6 +355,8 @@
 
     
     <div id="home-flight-card" style="background:var(--surface-card);border:1px solid var(--border-card);border-radius:18px;box-shadow:0 2px 8px rgba(214,41,63,.06);padding:20px 22px;margin-top:14px">
+      <button type="button" id="fl-compact" data-noprint onclick="toggleFlightCard()" aria-expanded="false" style="display:none;width:100%;background:none;border:none;padding:0;cursor:pointer;font-family:var(--font-ui);align-items:center;justify-content:space-between;gap:10px;text-align:start"><span id="fl-compact-text" style="font:var(--fw-bold) var(--text-13-5)/1.4 var(--font-ui);color:var(--ink-2)"></span><span id="fl-compact-toggle" style="font:var(--fw-bold) var(--text-12)/1 var(--font-ui);color:var(--blue-600);white-space:nowrap">פרטים</span></button>
+      <div id="fl-full">
       <div id="cd-label-wrap" style="font:var(--fw-heavy) var(--text-13-5)/1.2 var(--font-ui);letter-spacing:var(--track-eyebrow);color:var(--orange-600);margin-bottom:16px"><span id="cd-label">ספירה לאחור להמראה</span></div>
       <div dir="ltr" style="display:flex;gap:8px;text-align:center;margin-bottom:18px">
         <div style="flex:1"><div style="font:var(--fw-black) clamp(26px,7vw,38px)/1 var(--font-num);letter-spacing:var(--track-stat);color:var(--navy-800)"><span id="cd-days">--</span></div><div data-i18n="cdDays" style="font:var(--fw-bold) var(--text-12)/1.4 var(--font-ui);color:var(--ink-7);margin-top:6px">ימים</div></div>
@@ -387,6 +389,7 @@
         </div>
       </div>
       <div id="hero-booking-ref"><div dir="ltr" style="display:inline-block;margin-top:14px;background:var(--surface-muted);color:var(--ink-6);border-radius:var(--radius-pill);padding:4px 10px;font:var(--fw-bold) var(--text-12)/1.2 var(--font-ui)">Booking ref: 82AV27</div></div>
+      </div>
     </div>
     <div class="home-nav">
   <button type="button" id="tile-days-featured" onclick="handleDaysTileClick()" class="home-tile" data-dir-flip style="grid-column:1/-1;background:var(--tile-1);filter:brightness(.82) saturate(1.08);flex-direction:row;align-items:center;justify-content:flex-start;text-align:start;gap:14px;padding:16px 20px">
@@ -1854,9 +1857,28 @@ window.addEventListener('pageshow', function(){ window.scrollTo(0,0); });
   var __demo = (typeof TRIP_DEMOS !== 'undefined' && typeof CURRENT_DESTINATION !== 'undefined') ? TRIP_DEMOS[CURRENT_DESTINATION] : null;
   var out = (__demo && __demo.flOutISO) ? new Date(__demo.flOutISO) : new Date('2026-09-28T19:45:00+03:00');
   var back = (__demo && __demo.flBackISO) ? new Date(__demo.flBackISO) : new Date('2026-10-11T19:55:00+09:00');
+  var landed = __demo ? null : new Date('2026-09-29T13:20:00+09:00');
+  var flExpanded = false;
   function pad(n){return n<10?'0'+n:''+n;}
+  function renderFlightCard(now){
+    var card=document.getElementById('home-flight-card'), full=document.getElementById('fl-full'), bar=document.getElementById('fl-compact');
+    if(!card||!full||!bar) return;
+    var abroad = !!landed && now>=landed;
+    if(!abroad){ bar.style.display='none'; full.style.display=''; card.style.padding='20px 22px'; return; }
+    var num=document.getElementById('fl-back-num'), dt=document.getElementById('fl-back-datetime');
+    document.getElementById('fl-compact-text').textContent=UI_STRINGS.flBack[CURRENT_LANG]+' · '+(num?num.textContent:'')+' · '+(dt?dt.textContent:'');
+    var tg=document.getElementById('fl-compact-toggle');
+    if(tg) tg.textContent=flExpanded ? (CURRENT_LANG==='en'?'Close':'סגירה') : (CURRENT_LANG==='en'?'Details':'פרטים');
+    bar.setAttribute('aria-expanded', flExpanded?'true':'false');
+    bar.style.display='flex';
+    full.style.display=flExpanded?'block':'none';
+    full.style.marginTop=flExpanded?'14px':'0';
+    card.style.padding=flExpanded?'16px 22px 20px':'10px 16px';
+  }
+  window.toggleFlightCard=function(){ flExpanded=!flExpanded; renderFlightCard(new Date()); };
   function tick(){
     var now=new Date(), target=null, label=UI_STRINGS.cdLabelDone[CURRENT_LANG];
+    renderFlightCard(now);
     if(now<out){target=out;label=UI_STRINGS.cdLabelOutbound[CURRENT_LANG];}
     else if(now<back){target=back;label=UI_STRINGS.cdLabelReturn[CURRENT_LANG];}
     document.getElementById('cd-label').textContent=label;
