@@ -455,8 +455,8 @@
 
     <div id="days-pillbar" class="app-screen" data-screen="days" style="display:none">
       <div data-dir-flip style="display:flex;justify-content:flex-start;margin-bottom:14px"><button type="button" onclick="showHome()" data-i18n="back" style="display:inline-flex;align-items:center;gap:6px;background:var(--navy-800);color:#fff;border:none;border-radius:var(--radius-pill);padding:10px 18px;font:var(--fw-bold) var(--text-14)/1 var(--font-ui);cursor:pointer;box-shadow:var(--shadow-card)">→ חזרה לתפריט</button></div>
-    <div class="screen-illustration" data-noprint><svg viewBox="0 0 400 90" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="30" r="16" fill="var(--navy-800)" opacity=".8"/>
-        <path d="M20 68 Q120 18 200 58 T380 38" fill="none" stroke="#6E8FD9" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 11"/>
+    <div class="screen-illustration" data-noprint><svg viewBox="0 0 400 90" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><circle id="day-marker" cx="20" cy="40" r="16" fill="var(--navy-800)" opacity=".8" style="transition:transform .5s ease"/>
+        <path id="day-route-path" d="M20 68 Q120 18 200 58 T380 38" fill="none" stroke="#6E8FD9" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 11"/>
         <circle cx="20" cy="68" r="6" fill="#6E8FD9"/><circle cx="200" cy="58" r="6" fill="#6E8FD9"/><circle cx="380" cy="38" r="6" fill="#6E8FD9"/></svg></div>
     
     <div data-noprint style="background:var(--surface-card);border:1px solid var(--border-card);border-radius:18px;box-shadow:0 2px 8px rgba(214,41,63,.06);padding:20px 22px 16px;margin-top:16px">
@@ -1960,7 +1960,32 @@ fetch('https://api.frankfurter.dev/v1/latest?from='+FX_CURRENCY.code+'&to=USD,IL
 }).catch(function(){});
 
 var CITY={'1':'#6E8FD9','2':'#6E8FD9','3':'#6E8FD9','4':'#B87FC2','5':'#D4526A','6':'#D4526A','7':'#D4526A','8':'#D4526A','9':'#4FA37A','10':'#B87FC2','11':'#6E8FD9','12':'#6E8FD9','13':'#B87FC2'};
+/* the big circle on the days illustration travels left -> right along the dotted route:
+   far left on day 1, far right on the last day. It follows the selected day, else today's trip day. */
+var DAY_MARKER_SEL=null;
+function updateDayMarker(sel){
+  try{
+    if(sel!==undefined) DAY_MARKER_SEL=sel;
+    var m=document.getElementById('day-marker'), path=document.getElementById('day-route-path');
+    if(!m||!path) return;
+    var total=document.querySelectorAll('[data-pill]').length;
+    var n=DAY_MARKER_SEL?parseInt(DAY_MARKER_SEL,10):getCurrentTripDayNumber();
+    if(!n){
+      var demo=(typeof TRIP_DEMOS!=='undefined'&&typeof CURRENT_DESTINATION!=='undefined')?TRIP_DEMOS[CURRENT_DESTINATION]:null;
+      var backISO=(demo&&demo.flBackISO)?demo.flBackISO:'2026-10-11T19:55:00+09:00';
+      var back=new Date(backISO);
+      n=(!isNaN(back.getTime())&&new Date()>back)?total:1;
+    }
+    if(n<1) n=1; if(total&&n>total) n=total;
+    var f=total>1?(n-1)/(total-1):0;
+    var L=path.getTotalLength();
+    if(!L) return;
+    var pt=path.getPointAtLength(f*L);
+    m.style.transform='translate('+(pt.x-20)+'px,'+(pt.y-68)+'px)';
+  }catch(e){}
+}
 function paintPills(sel){
+  updateDayMarker(sel);
   [].forEach.call(document.querySelectorAll('[data-pill]'),function(p){
     var on=p.getAttribute('data-pill')===sel, c=CITY[p.getAttribute('data-pill')], k=p.children;
     p.style.background=on?c:'var(--surface-muted)';
@@ -2011,6 +2036,7 @@ function showScreen(name){
   if(flight) flight.style.display='none';
   if(name === 'weather' && typeof renderWeatherForecasts === 'function') renderWeatherForecasts();
   if(name === 'days' && typeof updatePillrowFade === 'function') updatePillrowFade();
+  if(name === 'days') updateDayMarker();
   if(name === 'budget' && typeof renderBudget === 'function') renderBudget();
   window.scrollTo({top:0,behavior:'smooth'});
 }
